@@ -1,9 +1,8 @@
-// next.config.js or next.config.ts
-
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
+import path from "path";
 
-const nextConfig: NextConfig = {
+const baseConfig: NextConfig = {
     typescript: {
         ignoreBuildErrors: true,
     },
@@ -13,14 +12,21 @@ const nextConfig: NextConfig = {
     images: {
         remotePatterns: [
             {
-                protocol: 'https',
-                hostname: 'img.clerk.com',
+                protocol: "https",
+                hostname: "img.clerk.com",
             },
         ],
     },
-    // Optional: useful if you’re using any packages that need to be transpiled
-    // transpilePackages: ['some-package'],
+    webpack(config) {
+        config.resolve.alias = {
+            ...(config.resolve.alias || {}),
+            "@": path.resolve(__dirname),
+        };
+        return config;
+    },
 };
+
+const { experimental, ...cleanedConfig } = baseConfig;
 
 const sentryWebpackOptions = {
     org: "learnovaai",
@@ -32,4 +38,4 @@ const sentryWebpackOptions = {
     automaticVercelMonitors: true,
 };
 
-export default withSentryConfig(nextConfig, sentryWebpackOptions);
+export default withSentryConfig(cleanedConfig, sentryWebpackOptions);
